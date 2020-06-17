@@ -1,0 +1,225 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        
+        "p_service_APIM_name": {
+            "defaultValue": "CSV3-ARM-API",
+            "type": "String"
+        },
+        "p_repoBaseUrl": {
+            "defaultValue": "https://github.com/shikhagupta2020/SampleGitRepo",
+            "type": "String"
+        }
+
+    },
+    "variables": {
+		"v_serviceUri": "uni-cashsurrdrvalue",
+		"v_displayName": "UNI_CashSurrdrValue",
+		"v_serviceUrl": "http://10.216.120.21:9080/UNISYSPROVIDER/UnisysCSVService",
+	},
+    "resources": [
+        {
+            "type": "Microsoft.ApiManagement/service",
+            "apiVersion": "2019-12-01",
+            "name": "[parameters('p_service_APIM_name')]",
+            "location": "East US",
+            "sku": {
+                "name": "Developer",
+                "capacity": 1
+            },
+             "properties": {
+                "publisherEmail": "ETS_Asia_Cloud_Services@manulife.com",
+                "publisherName": "Manulife",
+                
+            }
+        },
+        
+        {
+            "type": "Microsoft.ApiManagement/service/apis",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('p_service_APIM_name'), '/v_serviceUri')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', parameters('p_service_APIM_name'))]"
+            ],
+            "properties": {
+                "displayName": "v_displayName",
+                "apiRevision": "1",
+                "subscriptionRequired": true,
+                "serviceUrl": "v_serviceUrl",
+                "path": "v_serviceUri",
+                "protocols": [
+                    "https"
+                ],
+                "type": "soap",
+                "isCurrent": true
+            }
+        },         
+        {
+            "type": "Microsoft.ApiManagement/service/properties",
+            "apiVersion": "2019-01-01",
+            "name": "[concat(parameters('p_service_APIM_name'), '/InWSSecUser')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', parameters('p_service_APIM_name'))]"
+            ],
+            "properties": {
+                "displayName": "InWSSecUser",
+                "value": "wesbusertest01",
+                "tags": [],
+                "secret": false
+            }
+        }, 
+        {
+            "type": "Microsoft.ApiManagement/service/properties",
+            "apiVersion": "2019-01-01",
+            "name": "[concat(parameters('p_service_APIM_name'), '/InWSSecPass')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', parameters('p_service_APIM_name'))]"
+            ],
+            "properties": {
+                "displayName": "InWSSecPass",
+                "value": "esbTestP@ssW0rd#01",
+                "tags": [],
+                "secret": true
+            }
+        },
+        
+        {
+            "type": "Microsoft.ApiManagement/service/properties",
+            "apiVersion": "2019-01-01",
+            "name": "[concat(parameters('p_service_APIM_name'), '/UNIUsername')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', parameters('p_service_APIM_name'))]"
+            ],
+            "properties": {
+                "displayName": "UNIUsername",
+                "value": "wesbusertest01",
+                "tags": [],
+                "secret": false
+            }
+        },
+        {
+            "type": "Microsoft.ApiManagement/service/properties",
+            "apiVersion": "2019-01-01",
+            "name": "[concat(parameters('p_service_APIM_name'), '/UNIPassword')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', parameters('p_service_APIM_name'))]"
+            ],
+            "properties": {
+                "displayName": "UNIPassword",
+                "value": "esbTestP@ssW0rd#01",
+                "tags": [],
+                "secret": true
+            }
+        },
+        
+        {
+            "type": "Microsoft.ApiManagement/service/properties",
+            "apiVersion": "2019-01-01",
+            "name": "[concat(parameters('p_service_APIM_name'), '/UNICashSurrdrValueURL')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', parameters('p_service_APIM_name'))]"
+            ],
+            "properties": {
+                "displayName": "UNICashSurrdrValueURL",
+                "value": "http://10.216.123.21:9081/UnisysProvider_Prod/UnisysCSVService",
+                "tags": [],
+                "secret": false
+            }
+        },   
+        
+        {
+            "type": "Microsoft.ApiManagement/service/apis/operations",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('p_service_APIM_name'), '/uni-cashsurrdrvalue/5ed7a5b3a5aa2c0f243121c2')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('p_service_APIM_name'), 'uni-cashsurrdrvalue')]",
+                "[resourceId('Microsoft.ApiManagement/service', parameters('p_service_APIM_name'))]"
+            ],
+            "properties": {
+                "displayName": "getCsvData",
+                "method": "POST",
+                "urlTemplate": "/?soapAction=getCsvData",
+                "templateParameters": [],
+                "request": {
+                    "description": "getCsvData",
+                    "queryParameters": [],
+                    "headers": [],
+                    "representations": []
+                },
+                "responses": []
+            }
+        },
+        
+        
+        {
+            "type": "Microsoft.ApiManagement/service/apis/operations",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('p_service_APIM_name'), '/uni-cashsurrdrvalue/getwsdl')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('p_service_APIM_name'), 'uni-cashsurrdrvalue')]",
+                "[resourceId('Microsoft.ApiManagement/service', parameters('p_service_APIM_name'))]"
+            ],
+            "properties": {
+                "displayName": "getWSDL",
+                "method": "GET",
+                "urlTemplate": "/?soapAction=getCsvData",
+                "templateParameters": [],
+                "responses": []
+            }
+        }, 
+
+        
+        {
+            "type": "Microsoft.ApiManagement/service/apis/schemas",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('p_service_APIM_name'), '/uni-cashsurrdrvalue/d44a2334-d634-42b3-90fb-cfb0788fa999')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('p_service_APIM_name'), 'uni-cashsurrdrvalue')]",
+                "[resourceId('Microsoft.ApiManagement/service', parameters('p_service_APIM_name'))]"
+            ],
+            "properties": {
+                "contentType": "application/vnd.ms-azure-apim.xsd+xml",
+                "document": {
+                    "value": "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:tns=\"http://webservices.elink.solcorp.com\" xmlns:wsdl=\"http://schemas.xmlsoap.org/wsdl/\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\" xmlns:apim-wsdltns=\"http://webservices.elink.solcorp.com\">\r\n  <xsd:element name=\"getCsvData\" type=\"getCsvData\" />\r\n  <xsd:element name=\"getCsvDataResponse\" type=\"getCsvDataResponse\" />\r\n  <xsd:complexType name=\"getCsvData\">\r\n    <xsd:sequence>\r\n      <xsd:element name=\"arg0\" type=\"xsd:string\" minOccurs=\"0\" />\r\n    </xsd:sequence>\r\n  </xsd:complexType>\r\n  <xsd:complexType name=\"getCsvDataResponse\">\r\n    <xsd:sequence>\r\n      <xsd:element name=\"return\" type=\"xsd:string\" minOccurs=\"0\" />\r\n    </xsd:sequence>\r\n  </xsd:complexType>\r\n</xsd:schema>"
+                }
+            }
+        },        
+        
+              
+        
+        {
+            "type": "Microsoft.ApiManagement/service/apis/operations/policies",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('p_service_APIM_name'), '/uni-cashsurrdrvalue/5ed7a5b3a5aa2c0f243121c2/policy')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('p_service_APIM_name'), 'uni-cashsurrdrvalue', '5ed7a5b3a5aa2c0f243121c2')]",
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('p_service_APIM_name'), 'uni-cashsurrdrvalue')]",
+                "[resourceId('Microsoft.ApiManagement/service', parameters('p_service_APIM_name'))]"
+            ],
+            "properties": {
+                "policyContent": "[concat(parameters('p_repoBaseUrl'), '/policy.xml')]",
+                "contentFormat": "rawxml-link"
+            }
+        },
+        {
+            "type": "Microsoft.ApiManagement/service/apis/operations/policies",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('p_service_APIM_name'), '/uni-cashsurrdrvalue/getwsdl/policy')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('p_service_APIM_name'), 'uni-cashsurrdrvalue', 'getwsdl')]",
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('p_service_APIM_name'), 'uni-cashsurrdrvalue')]",
+                "[resourceId('Microsoft.ApiManagement/service', parameters('p_service_APIM_name'))]"
+            ],
+            "properties": {
+                "value": "<!--\r\n    IMPORTANT:\r\n    - Policy elements can appear only within the <inbound>, <outbound>, <backend> section elements.\r\n    - To apply a policy to the incoming request (before it is forwarded to the backend service), place a corresponding policy element within the <inbound> section element.\r\n    - To apply a policy to the outgoing response (before it is sent back to the caller), place a corresponding policy element within the <outbound> section element.\r\n    - To add a policy, place the cursor at the desired insertion point and select a policy from the sidebar.\r\n    - To remove a policy, delete the corresponding policy statement from the policy document.\r\n    - Position the <base> element within a section element to inherit all policies from the corresponding section element in the enclosing scope.\r\n    - Remove the <base> element to prevent inheriting policies from the corresponding section element in the enclosing scope.\r\n    - Policies are applied in the order of their appearance, from the top down.\r\n    - Comments within policy elements are not supported and may disappear. Place your comments between policy elements or at a higher level scope.\r\n-->\r\n<policies>\r\n  <inbound>\r\n    <return-response>\r\n      <set-status code=\"200\" reason=\"OK\" />\r\n      <set-header name=\"Content-Type\" exists-action=\"override\">\r\n        <value>text/html</value>\r\n      </set-header>\r\n      <set-body template=\"none\">@(\"&lt;html&gt;&lt;body&gt;\"+\r\n                \"&lt;h2&gt;CSV cash surrender value service&lt;/h2&gt;\"+\r\n                \"&lt;h3&gt;Hello! This is an Azure API Web Service!&lt;/h3&gt;\"+\r\n                \"&lt;/body&gt;&lt;/html&gt;\")</set-body>\r\n    </return-response>\r\n    <set-backend-service base-url=\"http://localhost:9080/overrideurl\" />\r\n  </inbound>\r\n  <backend />\r\n  <outbound />\r\n  <on-error />\r\n</policies>",
+                "format": "xml"
+            }
+        }
+
+        
+
+        
+        
+    ]
+}
