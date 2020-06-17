@@ -4,7 +4,7 @@
     "parameters": {
         
         "service_APIM_instance_name": {
-            "defaultValue": "CSV-ARM-API",
+            "defaultValue": "CSV2-ARM-API",
             "type": "String"
         }
     },
@@ -26,7 +26,7 @@
                 "hostnameConfigurations": [
                     {
                         "type": "Proxy",
-                        "hostName": "csv-arm-api.azure-api.net",
+                        "hostName": "csv2-arm-api.azure-api.net",
                         "negotiateClientCertificate": false,
                         "defaultSslBinding": true
                     }
