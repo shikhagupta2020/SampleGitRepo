@@ -50,7 +50,7 @@
                 <set-variable name="inputLog" value="@{ 
                   return "UNI_CashSurrdrValue, INBOUND, SUCCESS, RequestGUID["+context.RequestId.ToString()+"], InputString["+context.Variables["requestDataCheck"]+"]"; 
                 }" />
-                <log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["inputLog"]+"\'}")</log-to-eventhub>
+                //<log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["inputLog"]+"\'}")</log-to-eventhub>
                 <set-body template="none">@(
 					"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:agw=\"http://webservices.elink.solcorp.com\">\n" + 
 			//  "  <soapenv:Header xmlns:wsa=\"http://www.w3.org/2005/08/addressing\">\n" + 
@@ -107,7 +107,7 @@
                 <set-variable name="outputLog" value="@{ 
                   return "UNI_CashSurrdrValue, OUTBOUND, SUCCESS, RequestGUID["+context.RequestId.ToString()+"], OutputString["+context.Variables["responseDataCheck"]+"]"; 
                 }" />
-                <log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["outputLog"]+"\'}")</log-to-eventhub>
+                //<log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["outputLog"]+"\'}")</log-to-eventhub>
                 <set-variable name="responseXML" value="@{
                     String outputString = ""+context.Variables["responseDataCheck"];                    
                     String returnCode = "";
@@ -141,7 +141,7 @@
                 <set-variable name="responseNullCheck" value="@{  
                     return "UNI_CashSurrdrValue, OUTBOUND, FAILURE, RequestGUID["+context.RequestId.ToString()+"], Error[Backend Response Is NULL]";
                 }" />
-                <log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["responseNullCheck"]+"\'}")</log-to-eventhub>
+                //<log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["responseNullCheck"]+"\'}")</log-to-eventhub>
                 <return-response>
                     <set-status code="500" reason="BackendResponseIsNull" />
                     <set-header name="BackendError" exists-action="override">
@@ -173,7 +173,7 @@
                             String SoapFaultInfo = ""+context.Variables["errorResponseBody"];
                             return "UNI_CashSurrdrValue, ONERROR, FAILURE, RequestGUID["+context.RequestId.ToString()+"], SoapFault["+SoapFaultInfo+"]";
                         }" />
-                        <log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["soapFaultCheck"]+"\'}")</log-to-eventhub>
+                       // <log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["soapFaultCheck"]+"\'}")</log-to-eventhub>
                     </when>
                     <otherwise>
                         <set-variable name="responseCheck" value="APIM internal error occurred" />
@@ -181,7 +181,7 @@
                             String ErrorInfo = ""+context.LastError.Source+","+context.LastError.Reason+","+context.LastError.Message+","+context.LastError.Section+","+context.LastError.Path;
                             return "UNI_CashSurrdrValue, ONERROR, FAILURE, RequestGUID["+context.RequestId.ToString()+"], ErrorMessage["+ErrorInfo+"]";
                         }" />
-                        <log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["errorCheck"]+"\'}")</log-to-eventhub>
+                       // <log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["errorCheck"]+"\'}")</log-to-eventhub>
                         <return-response>
                             <set-status code="@(context.Response.StatusCode)" reason="@(context.LastError.Reason)" />
                             <set-header name="Content-Type" exists-action="override">
