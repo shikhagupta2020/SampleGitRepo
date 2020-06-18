@@ -4,7 +4,7 @@
     "parameters": {
         
         "p_service_APIM_name": {
-            "defaultValue": "CSV3-ARM-API",
+            "defaultValue": "CSV4-ARM-API",
             "type": "String"
         },
         "p_repoBaseUrl": {
@@ -16,7 +16,7 @@
     "variables": {
 		"v_serviceUri": "uni-cashsurrdrvalue",
 		"v_displayName": "UNI_CashSurrdrValue",
-		"v_serviceUrl": "http://10.216.120.21:9080/UNISYSPROVIDER/UnisysCSVService",
+		"v_serviceUrl": "http://10.216.120.21:9080/UNISYSPROVIDER/UnisysCSVService"
 	},
     "resources": [
         {
@@ -30,7 +30,7 @@
             },
              "properties": {
                 "publisherEmail": "ETS_Asia_Cloud_Services@manulife.com",
-                "publisherName": "Manulife",
+                "publisherName": "Manulife"
                 
             }
         },
@@ -38,16 +38,16 @@
         {
             "type": "Microsoft.ApiManagement/service/apis",
             "apiVersion": "2019-12-01",
-            "name": "[concat(parameters('p_service_APIM_name'), '/v_serviceUri')]",
+            "name": "[concat(parameters('p_service_APIM_name'), '/uni-cashsurrdrvalue')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ApiManagement/service', parameters('p_service_APIM_name'))]"
             ],
             "properties": {
-                "displayName": "v_displayName",
+                "displayName": "UNI_CashSurrdrValue",
                 "apiRevision": "1",
                 "subscriptionRequired": true,
-                "serviceUrl": "v_serviceUrl",
-                "path": "v_serviceUri",
+                "serviceUrl": "http://10.216.120.21:9080/UNISYSPROVIDER/UnisysCSVService",
+                "path": "uni-cashsurrdrvalue",
                 "protocols": [
                     "https"
                 ],
@@ -199,7 +199,7 @@
             ],
             "properties": {
                 "policyContent": "[concat(parameters('p_repoBaseUrl'), '/policy.xml')]",
-                "contentFormat": "rawxml-link"
+                "contentFormat": "xml-link"
             }
         },
         {
