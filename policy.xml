@@ -13,7 +13,7 @@
 <policies>
     <inbound>
         <choose>
-            <when>
+            <when condition=true>
                 <set-variable name="body" value="@(context.Request.Body.As<string>(preserveContent: true))" />
                 <set-variable name="requestDataCheck" value="@{
                     XDocument xDoc = context.Request.Body.As<XDocument>(preserveContent: true);
@@ -97,7 +97,7 @@
     </backend>
     <outbound>
         <choose>
-            <when condition="@((context.Response.Body) != null)">
+            <when condition=true>
                 <set-variable name="responseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
                 <set-variable name="responseDataCheck" value="@{
                     XDocument xDoc = context.Response.Body.As<XDocument>(preserveContent: true);
@@ -164,7 +164,7 @@
     </outbound>
     <on-error>
         <choose>
-            <when condition="@((context.Response.Body) != null)">
+            <when condition=true>
                 <set-variable name="errorResponseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
                 <choose>
                     <when condition="@(((""+context.Variables["errorResponseBody"]).Contains("faultcode")))">
