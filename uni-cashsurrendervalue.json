@@ -4,7 +4,7 @@
     "parameters": {
         
         "p_service_APIM_name": {
-            "defaultValue": "CSV4-ARM-API",
+            "defaultValue": "CSV5-ARM-API",
             "type": "String"
         },
         "p_repoBaseUrl": {
