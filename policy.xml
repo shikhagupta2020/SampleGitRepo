@@ -11,19 +11,23 @@
     - Comments within policy elements are not supported and may disappear. Place your comments between policy elements or at a higher level scope.
 -->
 <policies>
-	<inbound>
-		<choose>
-			<when condition="@((context.Request.Body) != null)">
-				<set-variable name="body" value="@(context.Request.Body.As<string>(preserveContent: true))" />
-				<set-variable name="requestDataCheck" value="@{
-                    XDocument xDoc = context.Request.Body.As<XDocument>(preserveContent: true);                  
+    <inbound>
+        <choose>
+            <when condition="@((context.Request.Body) != null)">
+                <set-variable name="body" value="@(context.Request.Body.As<string>(preserveContent: true))" />
+                <set-variable name="requestDataCheck" value="@{
+                    XDocument xDoc = context.Request.Body.As<XDocument>(preserveContent: true);
                     String usernameVal = "";
                     String passwordVal = "";
-                    String reqNo = "";
-                    String appNo = "";                 
+                    String transactionCd = "";
+                    String sProdCd = "";
+                    String policyNo    = "";
+                    String effectiveDate = "";
+                    String requestId    = "";
+                    String requestorType = "";
                     try {
                         usernameVal = xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Header").Element("{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}Security").Element("{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}UsernameToken").Element("{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}Username").Value.ToString();
-                        passwordVal = xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Header").Element("{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}Security").Element("{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}UsernameToken").Element("{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}Password").Value.ToString();                       
+                        passwordVal = xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Header").Element("{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}Security").Element("{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}UsernameToken").Element("{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}Password").Value.ToString();         
                         if ( !(usernameVal.Equals("{{InWSSecUser}}")) || !(passwordVal.Equals("{{InWSSecPass}}")) ) {
                             throw new Exception ("ws-security invalid username token");
                         }
@@ -31,22 +35,49 @@
                         throw new Exception("AUTHENTICATION-FAILURE: An error occurred in ws-security username token verification", e);
                     }
                     try {
-                        reqNo  = xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Body").Element("{http://jp.co.manulife.scv.alphasearch}alphaSearchRequest").Element("{http://jp.co.manulife.scv.alphasearch}basicInfo").Element("{http://jp.co.manulife.scv.alphasearch}requestNo").Value.ToString();
-                        appNo =  xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Body").Element("{http://jp.co.manulife.scv.alphasearch}alphaSearchRequest").Element("{http://jp.co.manulife.scv.alphasearch}largeProductInfo").Element("{http://jp.co.manulife.scv.alphasearch}largeProductDetails").Element("{http://jp.co.manulife.scv.alphasearch}applicationNo").Value.ToString();
+                        transactionCd = xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Body").Element("{http://UnisysMediation/AGWCSVService}getCSVData").Element("request").Element("RequestParameters").Element("TransactionCd").Value.ToString();
+                        sProdCd       = xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Body").Element("{http://UnisysMediation/AGWCSVService}getCSVData").Element("request").Element("RequestParameters").Element("SProdCd").Value.ToString();
+                        policyNo      = xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Body").Element("{http://UnisysMediation/AGWCSVService}getCSVData").Element("request").Element("RequestParameters").Element("PolicyNumber").Value.ToString();
+                        effectiveDate = xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Body").Element("{http://UnisysMediation/AGWCSVService}getCSVData").Element("request").Element("RequestParameters").Element("EffectiveDate").Value.ToString();
+                        requestId     = xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Body").Element("{http://UnisysMediation/AGWCSVService}getCSVData").Element("request").Element("RequestParameters").Element("RequestID").Value.ToString();
+                        requestorType = xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Body").Element("{http://UnisysMediation/AGWCSVService}getCSVData").Element("request").Element("RequestParameters").Element("RequestorType").Value.ToString();
                     }
                     catch (Exception e){
                         throw new Exception("REQUEST-LOGGING-FAILURE: An error occurred while logging request key information", e);
                     }
-                    return "SCV_AlphaSearch, INBOUND, SUCCESS, RequestGUID["+context.RequestId.ToString()+"], RequestNo["+reqNo+"], ApplicationNo["+appNo+"]";               
+                    return transactionCd+sProdCd+policyNo+effectiveDate+requestId+requestorType;
                 }" />
-			</when>
-			<otherwise>
-				<return-response>
-					<set-status code="500" reason="REQUEST-VALIDATION-FAILED" />
-					<set-header name="Content-Type" exists-action="override">
-						<value>text/xml</value>
-					</set-header>
-					<set-body template="none">@("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" + 
+                <set-variable name="inputLog" value="@{ 
+                  return "UNI_CashSurrdrValue, INBOUND, SUCCESS, RequestGUID["+context.RequestId.ToString()+"], InputString["+context.Variables["requestDataCheck"]+"]"; 
+                }" />
+                <log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["inputLog"]+"\'}")</log-to-eventhub>
+                <set-body template="none">@(
+					"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:agw=\"http://webservices.elink.solcorp.com\">\n" + 
+			//  "  <soapenv:Header xmlns:wsa=\"http://www.w3.org/2005/08/addressing\">\n" + 
+			//	"      <wsse:Security soapenv:mustUnderstand=\"1\" xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\">\n" + 
+			//	"         <wsse:UsernameToken wsu:Id=\"unt_20\" xmlns:wsu=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">\n" + 
+			//	"            <wsse:Username>wesbusertest01</wsse:Username>\n" + 
+			//	"            <wsse:Password Type=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText\">esbTestP@ssW0rd#01</wsse:Password>\n" + 
+			//	"         </wsse:UsernameToken>\n" + 
+			//	"      </wsse:Security>\n" + 
+			//	"   </soapenv:Header> \n" +                 
+                    "  <soapenv:Body>\n" + 
+				    "      <agw:getCsvData>\n" + 
+				    "         <arg0>"+context.Variables["requestDataCheck"]+"</arg0>\n" + 
+				    "      </agw:getCsvData>\n" + 
+				    "   </soapenv:Body>\n" + 
+				    "</soapenv:Envelope>")</set-body>
+            </when>
+            <otherwise>
+                <return-response>
+                    <set-status code="500" reason="REQUEST-VALIDATION-FAILED" />
+                    <set-header name="RequestValidation" exists-action="override">
+                        <value>RequestValidation="invalid_body"</value>
+                    </set-header>
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>text/xml</value>
+                    </set-header>
+                    <set-body template="none">@("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" + 
 				        "   <soapenv:Body>\n" + 
 				        "      <soapenv:Fault>\n" + 
 				        "         <faultcode>REQUEST-VALIDATION-FAILED</faultcode>\n" + 
@@ -54,38 +85,72 @@
 				        "      </soapenv:Fault>\n" + 
 				        "   </soapenv:Body>\n" + 
 				        "</soapenv:Envelope>")</set-body>
-				</return-response>
-			</otherwise>
-		</choose>
-		<find-and-replace from="{{InWSSecUser}}" to="{{SCVUsername}}" />
-		<find-and-replace from="{{InWSSecPass}}" to="{{SCVPassword}}" />
-		<set-backend-service base-url="{{SCVAlphaSearchURL}}" />
-	</inbound>
-	<backend>
-		<forward-request timeout="120" fail-on-error-status-code="true" />
-	</backend>
-	<outbound>
-		<choose>
-			<when condition="@((context.Response.Body) != null)">
-				<set-variable name="responseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
-				<set-variable name="responseDataCheck" value="@{
-                    String respBodyStr      = "";
-                    String respPart      = "";
-                    respBodyStr = (String)context.Variables["responseBody"]; 
-                    respPart = respBodyStr.Substring(100,200);
-                    return "SCV_AlphaSearch, OUTBOUND, SUCCESS, RequestGUID["+context.RequestId.ToString()+"], ResponsePart["+respPart+"]";
+                </return-response>
+            </otherwise>
+        </choose>
+        <find-and-replace from="{{InWSSecUser}}" to="{{UNIUsername}}" />
+        <find-and-replace from="{{InWSSecPass}}" to="{{UNIPassword}}" />
+        <set-backend-service base-url="{{UNICashSurrdrValueURL}}" />
+    </inbound>
+    <backend>
+        <forward-request timeout="120" fail-on-error-status-code="true" />
+    </backend>
+    <outbound>
+        <choose>
+            <when condition="@((context.Response.Body) != null)">
+                <set-variable name="responseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
+                <set-variable name="responseDataCheck" value="@{
+                    XDocument xDoc = context.Response.Body.As<XDocument>(preserveContent: true);
+                    String unisysReturnValue = xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Body").Element("{http://webservices.elink.solcorp.com}getCsvDataResponse").Element("return").Value.ToString();
+                    return unisysReturnValue;
                 }" />
-			</when>
-			<otherwise>
-				<set-variable name="responseNullCheck" value="@{  
-                    return "SCV_AlphaSearch, OUTBOUND, FAILURE, RequestGUID["+context.RequestId.ToString()+"], Error[Backend Response Is NULL]";
+                <set-variable name="outputLog" value="@{ 
+                  return "UNI_CashSurrdrValue, OUTBOUND, SUCCESS, RequestGUID["+context.RequestId.ToString()+"], OutputString["+context.Variables["responseDataCheck"]+"]"; 
                 }" />
-				<return-response>
-					<set-status code="500" reason="BACKEND-RESPONSE-NULL" />
-					<set-header name="Content-Type" exists-action="override">
-						<value>text/xml</value>
-					</set-header>
-					<set-body template="none">@("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" + 
+                <log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["outputLog"]+"\'}")</log-to-eventhub>
+                <set-variable name="responseXML" value="@{
+                    String outputString = ""+context.Variables["responseDataCheck"];                    
+                    String returnCode = "";
+                    String errorCd = "";
+                    String transactionCd = ""; 
+                    String apStatus = "";
+                    String policyCSVAmount = "";
+                    returnCode = outputString.Substring(0,2);
+                    errorCd = outputString.Substring(2,5);
+                    transactionCd = outputString.Substring(7,6);
+                    if (outputString.Length > 13) {
+                        apStatus = outputString.Substring(13,2);
+                        policyCSVAmount = outputString.Substring(15,10);
+                    }                   
+                    return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body><se:getCSVDataResponse xmlns:se=\"http://UnisysMediation/AGWCSVService\"><response><ResponseDetails>"+
+                    "<ReturnCode>"+returnCode+"</ReturnCode><PolicyCSVAmount>"+policyCSVAmount+"</PolicyCSVAmount><ErrorCd>"+errorCd+"</ErrorCd><TransactionCd>"+transactionCd+"</TransactionCd><APStatus>"+apStatus+"</APStatus>"+
+                    "</ResponseDetails></response></se:getCSVDataResponse></soapenv:Body></soapenv:Envelope>";
+                }" />
+                <return-response>
+                    <set-status code="200" reason="OK" />
+                    <set-header name="getCSVDataResponse" exists-action="override">
+                        <value>getCSVDataResponse</value>
+                    </set-header>
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>text/xml</value>
+                    </set-header>
+                    <set-body template="none">@(""+context.Variables["responseXML"])</set-body>
+                </return-response>
+            </when>
+            <otherwise>
+                <set-variable name="responseNullCheck" value="@{  
+                    return "UNI_CashSurrdrValue, OUTBOUND, FAILURE, RequestGUID["+context.RequestId.ToString()+"], Error[Backend Response Is NULL]";
+                }" />
+                <log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["responseNullCheck"]+"\'}")</log-to-eventhub>
+                <return-response>
+                    <set-status code="500" reason="BackendResponseIsNull" />
+                    <set-header name="BackendError" exists-action="override">
+                        <value>BackendError="backend_response_is_null"</value>
+                    </set-header>
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>text/xml</value>
+                    </set-header>
+                    <set-body template="none">@("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" + 
 				        "   <soapenv:Body>\n" + 
 				        "      <soapenv:Fault>\n" + 
 				        "         <faultcode>RESPONSE-VALIDATION-FAILED</faultcode>\n" + 
@@ -93,56 +158,60 @@
 				        "      </soapenv:Fault>\n" + 
 				        "   </soapenv:Body>\n" + 
 				        "</soapenv:Envelope>")</set-body>
-				</return-response>
-			</otherwise>
-		</choose>
-	</outbound>
-	<on-error>
-		<choose>
-			<when condition="@((context.Response.Body) != null)">
-				<set-variable name="errorResponseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
-				<choose>
-					<when condition="@(((""+context.Variables["errorResponseBody"]).Contains("faultcode")))">
-						<set-variable name="soapFaultCheck" value="@{
+                </return-response>
+            </otherwise>
+        </choose>
+    </outbound>
+    <on-error>
+        <choose>
+            <when condition="@((context.Response.Body) != null)">
+                <set-variable name="errorResponseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
+                <choose>
+                    <when condition="@(((""+context.Variables["errorResponseBody"]).Contains("faultcode")))">
+                        <set-variable name="responseCheck" value="Backend soap fault received" />
+                        <set-variable name="soapFaultCheck" value="@{
                             String SoapFaultInfo = ""+context.Variables["errorResponseBody"];
-                            return "SCV_AlphaSearch, ONERROR, FAILURE, RequestGUID["+context.RequestId.ToString()+"], SoapFault["+SoapFaultInfo+"]";
+                            return "UNI_CashSurrdrValue, ONERROR, FAILURE, RequestGUID["+context.RequestId.ToString()+"], SoapFault["+SoapFaultInfo+"]";
                         }" />
-					</when>
-					<otherwise>
-						<set-variable name="errorCheck" value="@{
+                        <log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["soapFaultCheck"]+"\'}")</log-to-eventhub>
+                    </when>
+                    <otherwise>
+                        <set-variable name="responseCheck" value="APIM internal error occurred" />
+                        <set-variable name="errorCheck" value="@{
                             String ErrorInfo = ""+context.LastError.Source+","+context.LastError.Reason+","+context.LastError.Message+","+context.LastError.Section+","+context.LastError.Path;
-                            return "SCV_AlphaSearch, ONERROR, FAILURE, RequestGUID["+context.RequestId.ToString()+"], ErrorMessage["+ErrorInfo+"]";
+                            return "UNI_CashSurrdrValue, ONERROR, FAILURE, RequestGUID["+context.RequestId.ToString()+"], ErrorMessage["+ErrorInfo+"]";
                         }" />
-						<return-response>
-							<set-status code="@(context.Response.StatusCode)" reason="@(context.LastError.Reason)" />
-							<set-header name="Content-Type" exists-action="override">
-								<value>text/xml</value>
-							</set-header>
-							<set-header name="RequestGUID" exists-action="override">
-								<value>@(context.RequestId.ToString())</value>
-							</set-header>
-							<set-header name="ErrorSource" exists-action="override">
-								<value>@(context.LastError.Source)</value>
-							</set-header>
-							<set-header name="ErrorReason" exists-action="override">
-								<value>@(context.LastError.Reason)</value>
-							</set-header>
-							<set-header name="ErrorMessage" exists-action="override">
-								<value>@(context.LastError.Message)</value>
-							</set-header>
-							<set-header name="ErrorScope" exists-action="override">
-								<value>@(context.LastError.Scope)</value>
-							</set-header>
-							<set-header name="ErrorSection" exists-action="override">
-								<value>@(context.LastError.Section)</value>
-							</set-header>
-							<set-header name="ErrorPath" exists-action="override">
-								<value>@(context.LastError.Path)</value>
-							</set-header>
-							<set-header name="ErrorStatusCode" exists-action="override">
-								<value>@(context.Response.StatusCode.ToString())</value>
-							</set-header>
-							<set-body template="none">@("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" + 
+                        <log-to-eventhub logger-id="jp-unisys-api-logger" partition-id="1">@("{\"LogData\" : \'"+context.Variables["errorCheck"]+"\'}")</log-to-eventhub>
+                        <return-response>
+                            <set-status code="@(context.Response.StatusCode)" reason="@(context.LastError.Reason)" />
+                            <set-header name="Content-Type" exists-action="override">
+                                <value>text/xml</value>
+                            </set-header>
+                            <set-header name="RequestGUID" exists-action="override">
+                                <value>@(context.RequestId.ToString())</value>
+                            </set-header>
+                            <set-header name="ErrorSource" exists-action="override">
+                                <value>@(context.LastError.Source)</value>
+                            </set-header>
+                            <set-header name="ErrorReason" exists-action="override">
+                                <value>@(context.LastError.Reason)</value>
+                            </set-header>
+                            <set-header name="ErrorMessage" exists-action="override">
+                                <value>@(context.LastError.Message)</value>
+                            </set-header>
+                            <set-header name="ErrorScope" exists-action="override">
+                                <value>@(context.LastError.Scope)</value>
+                            </set-header>
+                            <set-header name="ErrorSection" exists-action="override">
+                                <value>@(context.LastError.Section)</value>
+                            </set-header>
+                            <set-header name="ErrorPath" exists-action="override">
+                                <value>@(context.LastError.Path)</value>
+                            </set-header>
+                            <set-header name="ErrorStatusCode" exists-action="override">
+                                <value>@(context.Response.StatusCode.ToString())</value>
+                            </set-header>
+                            <set-body template="none">@("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" + 
 				                "   <soapenv:Body>\n" + 
 				                "      <soapenv:Fault>\n" + 
 				                "         <faultcode>"+context.LastError.Reason+"</faultcode>\n" + 
@@ -155,11 +224,11 @@
 				                "      </soapenv:Fault>\n" + 
 				                "   </soapenv:Body>\n" + 
 				                "</soapenv:Envelope>")</set-body>
-						</return-response>
-					</otherwise>
-				</choose>
-			</when>
-			<otherwise />
-		</choose>
-	</on-error>
+                        </return-response>
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise />
+        </choose>
+    </on-error>
 </policies>
