@@ -13,7 +13,7 @@
 <policies>
     <inbound>
         <choose>
-            <when condition="@(context.Request.Body)">
+            <when condition="@(context.Request.Body.As<boolean>)">
 			
 			     <set-variable name="body" value="@(context.Request.Body.As<string>(preserveContent: true))" />
                 <set-variable name="requestDataCheck" value="@{
