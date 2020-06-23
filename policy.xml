@@ -12,9 +12,10 @@
 -->
 <policies>
     <inbound>
+	<set-variable name="body" value="@(context.Request.Body.As<string>(preserveContent: true))" />
         <choose>
 		
-			<set-variable name="body" value="@(context.Request.Body.As<string>(preserveContent: true))" />
+			
 			<when condition="@(context.Variables.GetValueOrDefault<bool>("body"))">
 			
 			     
@@ -99,8 +100,9 @@
         <forward-request timeout="120" fail-on-error-status-code="true" />
     </backend>
     <outbound>
+	<set-variable name="responseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
         <choose>
-			<set-variable name="responseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
+			
 			<when condition="@(context.Variables.GetValueOrDefault<bool>("responseBody"))">
                   <set-variable name="responseDataCheck" value="@{
                     XDocument xDoc = context.Response.Body.As<XDocument>(preserveContent: true);
@@ -166,8 +168,9 @@
         </choose>
     </outbound>
     <on-error>
+	<set-variable name="errorResponseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
         <choose>
-               <set-variable name="errorResponseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
+               
 			<when condition="@(context.Variables.GetValueOrDefault<bool>("errorResponseBody"))">
 			
 			              
