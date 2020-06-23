@@ -15,8 +15,7 @@
         <choose>
 		
 			<set-variable name="body" value="@(context.Request.Body.As<string>(preserveContent: true))" />
-			
-            <when condition="@(context.Variables.GetValueOrDefault<bool>("body"))">
+			<when condition="@(context.Variables.GetValueOrDefault<bool>("body"))">
 			
 			     
                 <set-variable name="requestDataCheck" value="@{
@@ -101,9 +100,9 @@
     </backend>
     <outbound>
         <choose>
-            <when condition="@(context.Response.Body)">
-                <set-variable name="responseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
-                <set-variable name="responseDataCheck" value="@{
+			<set-variable name="responseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
+			<when condition="@(context.Variables.GetValueOrDefault<bool>("responseBody"))">
+                  <set-variable name="responseDataCheck" value="@{
                     XDocument xDoc = context.Response.Body.As<XDocument>(preserveContent: true);
                     String unisysReturnValue = xDoc.Root.Element("{http://schemas.xmlsoap.org/soap/envelope/}Body").Element("{http://webservices.elink.solcorp.com}getCsvDataResponse").Element("return").Value.ToString();
                     return unisysReturnValue;
@@ -168,8 +167,10 @@
     </outbound>
     <on-error>
         <choose>
-            <when condition="@(context.Response.Body)">
-                <set-variable name="errorResponseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
+               <set-variable name="errorResponseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
+			<when condition="@(context.Variables.GetValueOrDefault<bool>("errorResponseBody"))">
+			
+			              
                 <choose>
                     <when condition="@(((""+context.Variables["errorResponseBody"]).Contains("faultcode")))">
                         <set-variable name="responseCheck" value="Backend soap fault received" />
