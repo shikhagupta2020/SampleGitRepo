@@ -13,12 +13,10 @@
 <policies>
     <inbound>
 	<set-variable name="body" value="@(context.Request.Body.As<string>(preserveContent: true))" />
+	<base />
         <choose>
-		
-			
 			<when condition="@(context.Variables.GetValueOrDefault<bool>("body"))">
-			
-			     
+			    
                 <set-variable name="requestDataCheck" value="@{
                     XDocument xDoc = context.Request.Body.As<XDocument>(preserveContent: true);
                     String usernameVal = "";
@@ -101,6 +99,7 @@
     </backend>
     <outbound>
 	<set-variable name="responseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
+	<base />
         <choose>
 			
 			<when condition="@(context.Variables.GetValueOrDefault<bool>("responseBody"))">
@@ -169,6 +168,7 @@
     </outbound>
     <on-error>
 	<set-variable name="errorResponseBody" value="@(context.Response.Body.As<string>(preserveContent: true))" />
+	<base />
         <choose>
                
 			<when condition="@(context.Variables.GetValueOrDefault<bool>("errorResponseBody"))">
