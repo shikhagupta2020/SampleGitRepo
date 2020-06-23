@@ -15,7 +15,8 @@
 	<set-variable name="body" value="@(context.Request.Body.As<string>(preserveContent: true))" />
 	<base />
         <choose>
-			<when condition="@(context.Variables.GetValueOrDefault("body")!= null)">
+			<when condition="@(context.Request.GetValueOrDefault("body")!= null)">
+			
 			    
                 <set-variable name="requestDataCheck" value="@{
                     XDocument xDoc = context.Request.Body.As<XDocument>(preserveContent: true);
